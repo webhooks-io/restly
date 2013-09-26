@@ -7,7 +7,8 @@
 var _       = require('underscore'),
     fs      = require('fs'),
     routes  = require('./lib/routes.js'),
-    caching  = require('./lib/caching.js');
+    caching  = require('./lib/caching.js'),
+    utils  = require('../../lib/utils.js');
 
 // global for exporting
 var restly = {};
@@ -40,6 +41,8 @@ restly.init = function(r, opts) {
   for(var rc in routesCollection) {
     
     var apicall = routesCollection[rc];
+
+    apicall.response = utils.Response();
     
     // add authentication object to apicall
     if (apicall.authentication) {
