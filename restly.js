@@ -80,13 +80,14 @@ restly.init = function(r, opts) {
         "default": true
       }
     }
-
+    
     // set up a express listener for each call
     switch(apicall.method) {
       case 'put': 
       
         (function(ac) {
-          app.put(ac.endpoint, function (req,res) {
+          routes.parseRoute(ac);
+          app.put(ac.endpoint_parsed.endpoint, function (req,res) {
             routes.parseRequest(ac, req, res);           
           });
         })(apicall);
@@ -95,7 +96,8 @@ restly.init = function(r, opts) {
       case 'post':
 
         (function(ac) {
-          app.post(ac.endpoint, function (req,res) {
+          routes.parseRoute(ac);
+          app.post(ac.endpoint_parsed.endpoint, function (req,res) {
             routes.parseRequest(ac, req, res);           
           });
         })(apicall);
@@ -104,7 +106,8 @@ restly.init = function(r, opts) {
       case 'delete': 
 
         (function(ac) {
-          app.delete(ac.endpoint, function (req,res) {
+          routes.parseRoute(ac);
+          app.delete(ac.endpoint_parsed.endpoint, function (req,res) {
             routes.parseRequest(ac, req, res);           
           });
         })(apicall);
@@ -113,7 +116,8 @@ restly.init = function(r, opts) {
       case 'get': 
         
         (function(ac) {
-          app.get(ac.endpoint, function (req,res) {
+          routes.parseRoute(ac);
+          app.get(ac.endpoint_parsed.endpoint, function (req,res) {
             routes.parseRequest(ac, req, res);           
           });
         })(apicall);
@@ -138,6 +142,7 @@ restly.init = function(r, opts) {
 
   // listen on the specified port
   var server = app.listen(opts.port);
+  console.log("Listing on port: " + opts.port);
 
   // this function is called when you want the server to die gracefully
   // i.e. wait for existing connections
