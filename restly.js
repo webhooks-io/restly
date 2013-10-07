@@ -56,6 +56,10 @@ restly.init = function(r, opts) {
       routesCollection[rc] = apicall;
     }
 
+    var _libSplit = apicall.library.split("/");
+    
+    apicall.outputLibrary = process.cwd()+"/"+opts.outputs+_libSplit[_libSplit.length-1];
+
     // get the full and correct path for the library
     apicall.library = process.cwd()+"/"+opts.lib+apicall.library;
 
@@ -175,13 +179,14 @@ var defaultOpts = function(opts) {
   // define defaults
   var defaults = {
     lib: "",
+    outputs: "outputs/",
     protocol: "http",
     domain: "localhost",
     port: 8000,
     name: "My API",
     description: "Interactive API docs",
     docs_endpoint: "/",
-    caching: false
+    caching: false,
   }
 
   // change defaults with supplied opts
