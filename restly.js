@@ -108,9 +108,9 @@ restly.init = function(r, opts) {
          (function(ac, error_opts) {
           routes.parseRoute(ac);
           app.put(ac.endpoint_parsed.endpoint, passport.authenticate('basic', { session: false }),
-            function(req, res, ApiKey) {
-              if (!ApiKey) { routes.invalidAuthetication(req, res, error_opts); }
-              req.ApiKey = ApiKey;
+            function(req, res) {
+              if (!req.user) { routes.invalidAuthetication(req, res, error_opts); }
+              req.ApiKey = req.user;
               routes.parseRequest(ac, req, res, error_opts);  
             });
         })(apicall, error_opts);
@@ -121,9 +121,9 @@ restly.init = function(r, opts) {
           (function(ac, error_opts) {
           routes.parseRoute(ac);
           app.post(ac.endpoint_parsed.endpoint, passport.authenticate('basic', { session: false }),
-            function(req, res, ApiKey) {
-              if (!ApiKey) { routes.invalidAuthetication(req, res, error_opts); }
-              req.ApiKey = ApiKey;
+            function(req, res) {
+              if (!req.user) { routes.invalidAuthetication(req, res, error_opts); }
+              req.ApiKey = req.user;
               routes.parseRequest(ac, req, res, error_opts);  
             });
         })(apicall, error_opts);
@@ -134,9 +134,9 @@ restly.init = function(r, opts) {
           (function(ac, error_opts) {
           routes.parseRoute(ac);
           app.delete(ac.endpoint_parsed.endpoint, passport.authenticate('basic', { session: false }),
-            function(req, res, ApiKey) {
-              if (!ApiKey) { routes.invalidAuthetication(req, res, error_opts); }
-              req.ApiKey = ApiKey;
+            function(req, res) {
+              if (!req.user) { routes.invalidAuthetication(req, res, error_opts); }
+              req.ApiKey = req.user;
               routes.parseRequest(ac, req, res, error_opts);  
             });
         })(apicall, error_opts);
@@ -146,9 +146,9 @@ restly.init = function(r, opts) {
         (function(ac, error_opts) {
           routes.parseRoute(ac);
           app.get(ac.endpoint_parsed.endpoint, passport.authenticate('basic', { session: false }),
-            function(req, res, ApiKey) {
-              if (!ApiKey) { routes.invalidAuthetication(req, res, error_opts); }
-              req.ApiKey = ApiKey;
+            function(req, res) {
+              if (!req.user) { routes.invalidAuthetication(req, res, error_opts); }
+              req.ApiKey = req.user;
               routes.parseRequest(ac, req, res, error_opts);  
             });
         })(apicall, error_opts);
