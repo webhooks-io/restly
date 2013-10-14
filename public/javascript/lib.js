@@ -49,7 +49,10 @@ var generateCurl=function(protocol,domain,port,key,method,endpoint) {
   // calculate method str
 	var methodstr="";
 	var datastr="";
-	var endpointstr = protocol+"://"+domain+":"+port+endpoint;
+  var username = $('#http_username').val();
+  var password = $('#http_password').val();
+
+	var endpointstr = protocol+"://"+username+":"+password+"@"+domain+":"+port+endpoint;
 	
 	//Is this just a normal get or post? Eg no file upload
   if(typeof formData == "undefined"){
@@ -86,6 +89,8 @@ var generateCurl=function(protocol,domain,port,key,method,endpoint) {
   
   var ajax_options = {
     url: endpoint,
+    username: username,
+    password: password,
     type: method,
     data: serializedstr
   };

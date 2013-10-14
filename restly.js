@@ -8,7 +8,11 @@ var _       = require('underscore'),
     fs      = require('fs'),
     routes  = require('./lib/routes.js'),
     caching  = require('./lib/caching.js'),
-    utils  = require('../../lib/utils.js');
+    passport = require('passport'),
+    passportHttp = require('passport-http'),
+    ApiKeyService = require('../../lib/ApiKey')
+    ;
+    
 
 // global for exporting
 var restly = {};
@@ -23,10 +27,23 @@ app.use(express.bodyParser({ keepExtensions: true, uploadDir: '/tmp' }));
 // define public directory for docs
 app.use(express.static(__dirname+'/public'));
 
+// add the passport usage
+app.use(passport.initialize());
+
 // wrapper for passing middleware to express
 restly.use = function(mw) {
   app.use(mw);
 }
+
+passport.use(new passportHttp.BasicStrategy({realm: "Webhooks.io REST API"},
+  function(userid, password, done) {
+    ApiKeyService.get(userid, password, function(opts, err, ApiKey){
+      if (err) { return done(err); }
+      if (!ApiKey) { return done(null, false); }
+      return done(null, ApiKey);  
+    });
+  }
+));
 
 // init
 restly.init = function(r, opts) {
@@ -37,12 +54,12 @@ restly.init = function(r, opts) {
   // get our routes
   var routesCollection = routes.getRoutes(r);
 
+  var error_opts = getErrors(r);
+
   // for each route
   for(var rc in routesCollection) {
     
     var apicall = routesCollection[rc];
-
-    apicall.response = utils.Response();
     
     // add authentication object to apicall
     if (apicall.authentication) {
@@ -88,47 +105,59 @@ restly.init = function(r, opts) {
     // set up a express listener for each call
     switch(apicall.method) {
       case 'put': 
-      
-        (function(ac) {
+         (function(ac, error_opts) {
           routes.parseRoute(ac);
-          app.put(ac.endpoint_parsed.endpoint, function (req,res) {
-            routes.parseRequest(ac, req, res);           
-          });
-        })(apicall);
+          app.put(ac.endpoint_parsed.endpoint, passport.authenticate('basic', { session: false }),
+            function(req, res, ApiKey) {
+              if (!ApiKey) { routes.invalidAuthetication(req, res, error_opts); }
+              req.ApiKey = ApiKey;
+              routes.parseRequest(ac, req, res, error_opts);  
+            });
+        })(apicall, error_opts);
         break;
+
 
       case 'post':
-
-        (function(ac) {
+          (function(ac, error_opts) {
           routes.parseRoute(ac);
-          app.post(ac.endpoint_parsed.endpoint, function (req,res) {
-            routes.parseRequest(ac, req, res);           
-          });
-        })(apicall);
+          app.post(ac.endpoint_parsed.endpoint, passport.authenticate('basic', { session: false }),
+            function(req, res, ApiKey) {
+              if (!ApiKey) { routes.invalidAuthetication(req, res, error_opts); }
+              req.ApiKey = ApiKey;
+              routes.parseRequest(ac, req, res, error_opts);  
+            });
+        })(apicall, error_opts);
         break;
 
+
       case 'delete': 
-
-        (function(ac) {
+          (function(ac, error_opts) {
           routes.parseRoute(ac);
-          app.delete(ac.endpoint_parsed.endpoint, function (req,res) {
-            routes.parseRequest(ac, req, res);           
-          });
-        })(apicall);
-        break;   
+          app.delete(ac.endpoint_parsed.endpoint, passport.authenticate('basic', { session: false }),
+            function(req, res, ApiKey) {
+              if (!ApiKey) { routes.invalidAuthetication(req, res, error_opts); }
+              req.ApiKey = ApiKey;
+              routes.parseRequest(ac, req, res, error_opts);  
+            });
+        })(apicall, error_opts);
+        break;
 
-      case 'get': 
-        
-        (function(ac) {
+        case 'get': 
+        (function(ac, error_opts) {
           routes.parseRoute(ac);
-          app.get(ac.endpoint_parsed.endpoint, function (req,res) {
-            routes.parseRequest(ac, req, res);           
-          });
-        })(apicall);
-        break;    
+          app.get(ac.endpoint_parsed.endpoint, passport.authenticate('basic', { session: false }),
+            function(req, res, ApiKey) {
+              if (!ApiKey) { routes.invalidAuthetication(req, res, error_opts); }
+              req.ApiKey = ApiKey;
+              routes.parseRequest(ac, req, res, error_opts);  
+            });
+        })(apicall, error_opts);
+        break;
     }
 
   }
+
+
 
   // documentation page
   app.get(opts.docs_endpoint, function(req, res) {
@@ -143,6 +172,16 @@ restly.init = function(r, opts) {
     res.render(process.cwd()+"/node_modules/restly/views/index.jade", page);
     
   });
+
+  // if no route was found, 
+  app.use(function(req, res){
+    routes.invalidRoute(req, res, error_opts);
+  });
+
+  app.use(function(err, req, res, next){
+    routes.internalError(err, req, res, error_opts);
+  });
+
 
   // listen on the specified port
   var server = app.listen(opts.port);
@@ -172,6 +211,31 @@ restly.init = function(r, opts) {
   process.on ('SIGINT', gracefulShutdown);
 
 }
+
+
+// return parsed errors
+var getErrors = function(r) {
+  
+  // verify routes are supplied correctly
+  if (_.isUndefined(r) || !_.isString(r) || !fs.existsSync(r)) {
+    console.log('Routes file not supplied or not present.');
+    process.exit(0);
+  }
+
+  r = fs.readFileSync(r, {encoding: 'utf-8'});
+
+  try {
+    r = JSON.parse(r);
+  } catch(e) {
+    console.log('Cannot parse routes file as JSON');
+    console.log(e);
+    process.exit(0);
+  }
+
+  return r.errors;
+}
+
+
 
 // default options
 var defaultOpts = function(opts) {
