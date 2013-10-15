@@ -37,11 +37,11 @@ restly.use = function(mw) {
 
 passport.use(new passportHttp.BasicStrategy({realm: "Webhooks.io REST API"},
   function(userid, password, done) {
-    ApiKeyService.get(userid, password, function(opts, err, ApiKey){
+    ApiKeyService.auth(userid, password, function(opts, err, ApiKey){
       if (err) { return done(err); }
       if (!ApiKey) { return done(null, false); }
       return done(null, ApiKey);  
-    });
+    }, "InvalidAuthenticationInfo");
   }
 ));
 
@@ -147,6 +147,7 @@ restly.init = function(r, opts) {
           routes.parseRoute(ac);
           app.get(ac.endpoint_parsed.endpoint, passport.authenticate('basic', { session: false }),
             function(req, res) {
+              console.log("+++++")
               if (!req.user) { routes.invalidAuthetication(req, res, error_opts); }
               req.ApiKey = req.user;
               routes.parseRequest(ac, req, res, error_opts);  
