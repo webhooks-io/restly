@@ -2,14 +2,14 @@ div.accordion.affix-top#accordionsidebar
 
   div.accordion-group
     div.accordion-heading
-      a.accordion-toggle(data-toggle='collapse',data-parent='#accordionsidebar',href='#collapseOne',style='outline:none')
+      a.accordion-toggle(data-toggle='collapse',data-parent='#accordionsidebar',href='#collapseThree',style='outline:none')
         i.icon-chevron-right.pull-right 
-        span Create Calls - HTTP PUT
-    div#collapseOne.accordion-body.collapse
+        span Create Calls - HTTP POST
+    div#collapseThree.accordion-body.collapse
       div.accordion-inner
         ul
           each apicall in routes
-            if apicall.method == 'put'
+            if apicall.method == 'post'
               li
                 a(href='##{apicall.method}-#{apicall.endpoint}') #{apicall.endpoint}
             
@@ -28,14 +28,14 @@ div.accordion.affix-top#accordionsidebar
 
   div.accordion-group
     div.accordion-heading
-      a.accordion-toggle(data-toggle='collapse',data-parent='#accordionsidebar',href='#collapseThree',style='outline:none')
+      a.accordion-toggle(data-toggle='collapse',data-parent='#accordionsidebar',href='#collapseOne',style='outline:none')
         i.icon-chevron-right.pull-right 
-        span Update Calls - HTTP POST
-    div#collapseThree.accordion-body.collapse
+        span Update Calls - HTTP PUT
+    div#collapseOne.accordion-body.collapse
       div.accordion-inner
         ul
           each apicall in routes
-            if apicall.method == 'post'
+            if apicall.method == 'put'
               li
                 a(href='##{apicall.method}-#{apicall.endpoint}') #{apicall.endpoint}
 
