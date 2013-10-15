@@ -9,12 +9,12 @@
 - }
 a(name='#{apicall.method}-#{apicall.endpoint}')
 div.spacer
-h2= apicall.endpoint
+h2= apicall.title
 span Method: 
 span.badge.badge-info= apicall.method
 p
 div.well.well-large
- h3= apicall.title
+ h3= apicall.endpoint
  div= apicall.description
 if Object.keys(apicall.parameters).length > 0
  table.table.table-striped

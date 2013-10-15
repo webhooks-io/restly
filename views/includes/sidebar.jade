@@ -11,7 +11,7 @@ div.accordion.affix-top#accordionsidebar
           each apicall in routes
             if apicall.method == 'post'
               li
-                a(href='##{apicall.method}-#{apicall.endpoint}') #{apicall.endpoint}
+                a(href='##{apicall.method}-#{apicall.endpoint}' title='#{apicall.endpoint}') #{apicall.title}
             
   div.accordion-group
     div.accordion-heading
@@ -24,7 +24,7 @@ div.accordion.affix-top#accordionsidebar
           each apicall in routes
             if apicall.method == 'get'
               li
-                a(href='##{apicall.method}-#{apicall.endpoint}') #{apicall.endpoint}
+                a(href='##{apicall.method}-#{apicall.endpoint}' title='#{apicall.endpoint}') #{apicall.title}
 
   div.accordion-group
     div.accordion-heading
@@ -37,7 +37,7 @@ div.accordion.affix-top#accordionsidebar
           each apicall in routes
             if apicall.method == 'put'
               li
-                a(href='##{apicall.method}-#{apicall.endpoint}') #{apicall.endpoint}
+                a(href='##{apicall.method}-#{apicall.endpoint}' title='#{apicall.endpoint}') #{apicall.title}
 
   div.accordion-group
     div.accordion-heading
@@ -50,7 +50,7 @@ div.accordion.affix-top#accordionsidebar
           each apicall in routes
             if apicall.method == 'delete'
               li
-                a(href='##{apicall.method}-#{apicall.endpoint}') #{apicall.endpoint}
+                a(href='##{apicall.method}-#{apicall.endpoint}' title='#{apicall.endpoint}') #{apicall.title}
 
 
   span 
