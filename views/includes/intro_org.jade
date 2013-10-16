@@ -1,0 +1,39 @@
+div.hero-unit
+  h1 #{config.name}
+  p
+  p
+  p #{config.description}
+  div.spacer
+
+h1 Introduction
+div.spacer
+p The #{config.name} API handles the following operation through the following http methods:
+ul
+  li PUT
+  li GET
+  li POST
+  li DELETE
+p Each API call returns a JSON object with up to three parameters:
+ol
+  li success - true/false
+  li error - an error message (optional)
+  li data - the data requested
+div.spacer
+      
+h2 Dates
+p Dates should be provided in the following formats (time is optional):
+pre 2010-10-30 21:30:00 (YYYY-MM-DD hh:mm:ss)
+p Dates can also be provided as an interval e.g.
+pre 4 months
+p This will be calculated as 4 months from the current date. These intervals can also be negative e.g.
+pre -3 years
+p Allowed units for intervals as:
+ul
+  li minutes
+  li hours
+  li days
+  li months
+  li years
+div.spacer
+      
+hr

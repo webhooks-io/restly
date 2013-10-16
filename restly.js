@@ -157,29 +157,33 @@ restly.init = function(r, opts) {
 
   }
 
-
+  var docs_endpoints = opts.docs_endpoint.split(",");
 
   // documentation page
-  app.get(opts.docs_endpoint, function(req, res) {
-    
-    // prepare the page data
-    var page = { 
-                  routes: routesCollection,
-                  config: opts
-                };
-    
-    // render the channel list page
-    res.render(process.cwd()+"/node_modules/restly/views/index.jade", page);
-    
-  });
-
+  for(var d=0; d<docs_endpoints.length; d++){
+    app.get(docs_endpoints[d], function(req, res) {
+      // prepare the page data
+      var page = { 
+                    routes: routesCollection,
+                    config: opts
+                  };
+      
+      // render the channel list page
+      res.render(process.cwd()+"/node_modules/restly/views/index.jade", page);
+    });
+  }
+  
   // if no route was found, 
   app.use(function(req, res){
     routes.invalidRoute(req, res, error_opts);
   });
 
   app.use(function(err, req, res, next){
-    routes.internalError(err, req, res, error_opts);
+    if(err.errorCode && err.errorCode == "InvalidAuthenticationInfo"){
+      routes.invalidAuthetication(req, res, error_opts);
+    }else{
+      routes.internalError(err, req, res, error_opts);  
+    }
   });
 
 
