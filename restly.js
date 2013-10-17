@@ -10,8 +10,7 @@ var _       = require('underscore'),
     caching  = require('./lib/caching.js'),
     passport = require('passport'),
     passportHttp = require('passport-http'),
-    ApiKeyService = require('../../lib/ApiKey')
-    ;
+    ApiKeyService = require('../../lib/ApiKey');
     
 
 // global for exporting
