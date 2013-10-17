@@ -20,6 +20,8 @@ var restly = {};
 var express = require('express');
 var app = express();
 
+app.disable('x-powered-by');
+
 // force express to parse posted and putted parameters
 app.use(express.bodyParser({ keepExtensions: true, uploadDir: '/tmp' }));
 
@@ -101,6 +103,13 @@ restly.init = function(r, opts) {
       }
     }
     
+
+    app.use(function(req, res, next) {
+      res.header("Access-Control-Allow-Origin", "*");
+      res.header("Access-Control-Allow-Headers", "X-Requested-With");
+      next();
+    });
+
     // set up a express listener for each call
     switch(apicall.method) {
       case 'put': 
