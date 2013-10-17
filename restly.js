@@ -105,7 +105,11 @@ restly.init = function(r, opts) {
     
 
     app.use(function(req, res, next) {
-      res.header("Access-Control-Allow-Origin", "*");
+      if(req.headers.origin){
+        res.header("Access-Control-Allow-Origin", req.headers.origin);
+      }else{
+        res.header("Access-Control-Allow-Origin", "*");  
+      }
       res.header("Access-Control-Allow-Headers", "X-Requested-With");
       next();
     });
