@@ -49,20 +49,37 @@ var generateCurl=function(protocol,domain,port,key,method,endpoint) {
   // calculate method str
 	var methodstr="";
 	var datastr="";
-  var username = $('#http_username').val();
-  var password = $('#http_password').val();
+  var auth_token = $('#auth_token').val();
 
-	var endpointstr = protocol+"://"+username+":"+password+"@"+domain+":"+port+endpoint;
+	var endpointstr = protocol+"://"+window.location.host+endpoint;
 	
 	//Is this just a normal get or post? Eg no file upload
   if(typeof formData == "undefined"){
 		var serializedstr = serializedarr.join('&');
 		
+    if(auth_token.length){
+      if(serializedstr.length){
+        endpointstr += "&_token="+auth_token;
+      }else{
+        endpointstr += "?_token="+auth_token;
+      }
+
+      if(method != 'get'){
+        endpoint += "?_token="+auth_token;
+      }
+    }
+    
 		switch(method) {
 			case "get":
 			 if(serializedstr.length>0) {
 				 endpointstr += "?"+serializedstr;
-			 }
+         if(auth_token.length){
+          serializedstr += "&_token="+auth_token;
+         }
+			 }else if(auth_token.length){
+        
+        serializedstr += "_token="+auth_token;
+       }
 				break;
 			default:
 				methodstr = "-X "+method.toUpperCase();
@@ -86,16 +103,11 @@ var generateCurl=function(protocol,domain,port,key,method,endpoint) {
   var command = "curl "+methodstr+datastr+" '"+endpointstr+"'<br />";
   $('#'+curlcommand).html(command);
   $('#'+curlcommand).removeClass('hidden');  
-  
   var ajax_options = {
     url: endpoint,
-    username: username,
-    password: password,
     type: method,
     data: serializedstr
   };
-  
-  console.log(ajax_options);
   
   if(typeof formData != "undefined"){
   	serializedstr=formData;
@@ -104,7 +116,7 @@ var generateCurl=function(protocol,domain,port,key,method,endpoint) {
   }
   
   $.ajax(ajax_options).done(function(data) { 
-  	console.log("success",data);
+  	//console.log("success",data);
 		$('#'+curlcommand).append("<pre>"+JSON.stringify(data,null,4)+"</pre>");
 		if(endpoint == '/logo') {
 			// Render the logo in a nice fashion

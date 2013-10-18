@@ -7,10 +7,7 @@
 var _       = require('underscore'),
     fs      = require('fs'),
     routes  = require('./lib/routes.js'),
-    caching  = require('./lib/caching.js'),
-    passport = require('passport'),
-    passportHttp = require('passport-http'),
-    ApiKeyService = require('../../lib/ApiKey');
+    caching  = require('./lib/caching.js');
     
 
 // global for exporting
@@ -28,23 +25,10 @@ app.use(express.bodyParser({ keepExtensions: true, uploadDir: '/tmp' }));
 // define public directory for docs
 app.use(express.static(__dirname+'/public'));
 
-// add the passport usage
-app.use(passport.initialize());
-
 // wrapper for passing middleware to express
 restly.use = function(mw) {
   app.use(mw);
 }
-
-passport.use(new passportHttp.BasicStrategy({realm: "Webhooks.io REST API"},
-  function(userid, password, done) {
-    ApiKeyService.get(userid, password, function(opts, err, ApiKey){
-      if (err) { return done(err); }
-      if (!ApiKey) { return done(null, false); }
-      return done(null, ApiKey);  
-    }, "InvalidAuthenticationInfo");
-  }
-));
 
 // init
 restly.init = function(r, opts) {
@@ -61,7 +45,7 @@ restly.init = function(r, opts) {
   for(var rc in routesCollection) {
     
     var apicall = routesCollection[rc];
-    
+    /*
     // add authentication object to apicall
     if (apicall.authentication) {
       
@@ -73,6 +57,7 @@ restly.init = function(r, opts) {
 
       routesCollection[rc] = apicall;
     }
+    */
 
     var _libSplit = apicall.library.split("/");
     
@@ -81,10 +66,12 @@ restly.init = function(r, opts) {
     // get the full and correct path for the library
     apicall.library = process.cwd()+"/"+opts.lib+apicall.library;
 
+    /*
     // and for the authentication library, if required
     if (apicall.authentication && apicall.authentication.library) {
       apicall.authentication.library = process.cwd()+"/"+opts.lib+apicall.authentication.library;
     } 
+    */
 
     // are we enabling caching?
     if (!opts.caching || !apicall.caching) {
@@ -111,6 +98,10 @@ restly.init = function(r, opts) {
         res.header("Access-Control-Allow-Origin", "*");  
       }
       res.header("Access-Control-Allow-Headers", "X-Requested-With");
+      res.header("Access-Control-Allow-Credentials", "true");
+      res.header("Access-Control-Allow-Headers", "Authorization");
+      res.header("Access-Control-Expose-Headers", "X-Webhooksio-Request-Id");
+      res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
       next();
     });
 
@@ -119,12 +110,9 @@ restly.init = function(r, opts) {
       case 'put': 
          (function(ac, error_opts) {
           routes.parseRoute(ac);
-          app.put(ac.endpoint_parsed.endpoint, passport.authenticate('basic', { session: false }),
-            function(req, res) {
-              if (!req.user) { routes.invalidAuthetication(req, res, error_opts); }
-              req.ApiKey = req.user;
-              routes.parseRequest(ac, req, res, error_opts);  
-            });
+          app.put(ac.endpoint_parsed.endpoint, function(req, res) {
+            routes.parseRequest(ac, req, res, error_opts);  
+          });
         })(apicall, error_opts);
         break;
 
@@ -132,12 +120,9 @@ restly.init = function(r, opts) {
       case 'post':
           (function(ac, error_opts) {
           routes.parseRoute(ac);
-          app.post(ac.endpoint_parsed.endpoint, passport.authenticate('basic', { session: false }),
-            function(req, res) {
-              if (!req.user) { routes.invalidAuthetication(req, res, error_opts); }
-              req.ApiKey = req.user;
-              routes.parseRequest(ac, req, res, error_opts);  
-            });
+          app.post(ac.endpoint_parsed.endpoint, function(req, res) {
+            routes.parseRequest(ac, req, res, error_opts);  
+          });
         })(apicall, error_opts);
         break;
 
@@ -145,28 +130,21 @@ restly.init = function(r, opts) {
       case 'delete': 
           (function(ac, error_opts) {
           routes.parseRoute(ac);
-          app.delete(ac.endpoint_parsed.endpoint, passport.authenticate('basic', { session: false }),
-            function(req, res) {
-              if (!req.user) { routes.invalidAuthetication(req, res, error_opts); }
-              req.ApiKey = req.user;
-              routes.parseRequest(ac, req, res, error_opts);  
-            });
+          app.delete(ac.endpoint_parsed.endpoint, function(req, res) {
+            routes.parseRequest(ac, req, res, error_opts);  
+          });
         })(apicall, error_opts);
         break;
 
         case 'get': 
         (function(ac, error_opts) {
           routes.parseRoute(ac);
-          app.get(ac.endpoint_parsed.endpoint, passport.authenticate('basic', { session: false }),
-            function(req, res) {
-              if (!req.user) { routes.invalidAuthetication(req, res, error_opts); }
-              req.ApiKey = req.user;
-              routes.parseRequest(ac, req, res, error_opts);  
-            });
+          app.get(ac.endpoint_parsed.endpoint, function(req, res) {
+            routes.parseRequest(ac, req, res, error_opts);  
+          });
         })(apicall, error_opts);
         break;
     }
-
   }
 
   var docs_endpoints = opts.docs_endpoint.split(",");
