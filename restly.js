@@ -168,6 +168,7 @@ restly.init = function(r, opts) {
     routes.invalidRoute(req, res, error_opts);
   });
 
+
   app.use(function(err, req, res, next){
     if(err.errorCode && err.errorCode == "InvalidAuthenticationInfo"){
       routes.invalidAuthetication(req, res, error_opts);
