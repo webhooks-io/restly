@@ -168,7 +168,6 @@ restly.init = function(r, opts) {
     routes.invalidRoute(req, res, error_opts);
   });
 
-
   app.use(function(err, req, res, next){
     if(err.errorCode && err.errorCode == "InvalidAuthenticationInfo"){
       routes.invalidAuthetication(req, res, error_opts);
@@ -176,7 +175,6 @@ restly.init = function(r, opts) {
       routes.internalError(err, req, res, error_opts);  
     }
   });
-
 
   // listen on the specified port
   var server = app.listen(opts.port);
