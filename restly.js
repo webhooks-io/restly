@@ -32,6 +32,10 @@ restly.use = function(mw) {
 
 // init
 restly.init = function(r, opts) {
+  config = {};
+  if(opts.config){
+    config = opts.config;
+  }
 
   // make sure all our defaults are set
   var opts = defaultOpts(opts);
@@ -100,8 +104,13 @@ restly.init = function(r, opts) {
       res.header("Access-Control-Allow-Headers", "X-Requested-With");
       res.header("Access-Control-Allow-Credentials", "true");
       res.header("Access-Control-Allow-Headers", "Authorization");
-      res.header("Access-Control-Expose-Headers", "X-Webhooksio-Request-Id");
+      res.header("Access-Control-Expose-Headers", "X-Webhooksio-Request-Id,X-Webhooksio-Version");
       res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+      // add the version being served up...
+      if(config.version){
+        res.header("X-Webhooksio-Version", config.version);
+      }
+      
       next();
     });
 
