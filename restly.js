@@ -7,7 +7,9 @@
 var _       = require('underscore'),
     fs      = require('fs'),
     routes  = require('./lib/routes.js'),
-    caching  = require('./lib/caching.js');
+    caching  = require('./lib/caching.js'),
+    https  = require('https'),
+    http  = require('http');
     
 
 // global for exporting
@@ -15,9 +17,12 @@ var restly = {};
 
 // set up express
 var express = require('express');
+
+var _server_opts = {};
 var app = express();
 
 app.disable('x-powered-by');
+app.disable('etag');
 
 // force express to parse posted and putted parameters
 app.use(express.bodyParser({ keepExtensions: true, uploadDir: '/tmp' }));
@@ -93,9 +98,23 @@ restly.init = function(r, opts) {
         "default": true
       }
     }
-    
 
     app.use(function(req, res, next) {
+      req.getOriginalUrl = function() {
+
+        var proto = req.protocol;
+
+        if(req.headers['x-forwarded-proto']){
+          proto = req.headers['x-forwarded-proto'];
+        }
+
+        return proto + "://" + req.get('host') + req.url;
+      }
+      return next();
+    });
+
+    app.use(function(req, res, next) {
+
       if(req.headers.origin){
         res.header("Access-Control-Allow-Origin", req.headers.origin);
       }else{
@@ -104,11 +123,13 @@ restly.init = function(r, opts) {
       res.header("Access-Control-Allow-Headers", "X-Requested-With");
       res.header("Access-Control-Allow-Credentials", "true");
       res.header("Access-Control-Allow-Headers", "Authorization");
-      res.header("Access-Control-Expose-Headers", "X-Webhooksio-Request-Id,X-Webhooksio-Version");
+      res.header("Access-Control-Expose-Headers", "Webhooksio-Request-Id,Webhooksio-Dev-Message,Webhooksio-Incoming-Message-Id,Webhooksio-Account-Id,Webhooksio-Message-Status,Webhooksio-Date-Received");
       res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+
+      //res.header("Webhooksio-Dev-Message", "Api docs @ http://webhooks.io/docs; Status board @ http://webhooks.io/status; Help desk @ http://support.webhooks.io");
       // add the version being served up...
       if(config.version){
-        res.header("X-Webhooksio-Version", config.version);
+        res.header("Server", "Webhooks.io/" + config.version + '; ' + config.server.server_id);
       }
       
       next();
@@ -153,9 +174,18 @@ restly.init = function(r, opts) {
           });
         })(apicall, error_opts);
         break;
+
+        case 'head':
+        (function(ac, error_opts) {
+          routes.parseRoute(ac);
+          app.head(ac.endpoint_parsed.endpoint, function(req, res) {
+            routes.parseRequest(ac, req, res, error_opts);
+          });
+        })(apicall, error_opts);
+        break;
     }
   }
-
+/*
   var docs_endpoints = opts.docs_endpoint.split(",");
 
   // documentation page
@@ -171,7 +201,22 @@ restly.init = function(r, opts) {
       res.render(process.cwd()+"/node_modules/restly/views/index.jade", page);
     });
   }
+  */
   
+  // allow the loader io key to be added..
+  if(global.wh.loader_io_key){
+    console.log('Loader.io key: ' + global.wh.loader_io_key);
+    app.get('/' + global.wh.loader_io_key + '.txt', function(req, res){
+      res.send(global.wh.loader_io_key);
+    });
+    app.get('/' + global.wh.loader_io_key + '.html', function(req, res){
+      res.send(global.wh.loader_io_key);
+    });
+    app.get('/' + global.wh.loader_io_key, function(req, res){
+      res.send(global.wh.loader_io_key);
+    });
+  }
+
   // if no route was found, 
   app.use(function(req, res){
     routes.invalidRoute(req, res, error_opts);
@@ -185,32 +230,46 @@ restly.init = function(r, opts) {
     }
   });
 
-  // listen on the specified port
-  var server = app.listen(opts.port);
-  console.log("Listing on port: " + opts.port);
+  if(!config.mock){
 
-  // this function is called when you want the server to die gracefully
-  // i.e. wait for existing connections
-  var gracefulShutdown = function() {
-    console.log("Received kill signal, shutting down gracefully.");
-    server.close(function() {
-      console.log("Closed out remaining connections.");
-      process.exit()
-    });
-    
-    // if after 
-    setTimeout(function() {
+
+    if(opts.server_type == "https"){
+      var server = https.createServer(opts.server_options, app);
+    }else{
+      var server = app.listen(opts.port);
+    }
+    server.listen(opts.port)
+
+    console.log("Listing on port: " + opts.port);
+
+    // this function is called when you want the server to die gracefully
+    // i.e. wait for existing connections
+    /*
+    var gracefulShutdown = function() {
+      console.log("Received kill signal, shutting down gracefully.");
+      server.close(function() {
+        console.log("Closed out remaining connections.");
+        process.exit()
+      });
+
+      // if after
+      setTimeout(function() {
         console.error("Could not close connections in time, forcefully shutting down");
         process.exit()
-   }, 3*1000);
-    
+      }, 3*1000);
+
+    }
+
+    // listen for TERM signal .e.g. kill <pid>
+    process.on ('SIGTERM', gracefulShutdown);
+
+    // listen for INT signal e.g. Ctrl-C
+    process.on ('SIGINT', gracefulShutdown);
+  */
+
+  }else{
+    return app;
   }
-
-  // listen for TERM signal .e.g. kill <pid>
-  process.on ('SIGTERM', gracefulShutdown);
-
-  // listen for INT signal e.g. Ctrl-C
-  process.on ('SIGINT', gracefulShutdown);
 
 }
 
@@ -253,6 +312,8 @@ var defaultOpts = function(opts) {
     description: "Interactive API docs",
     docs_endpoint: "/",
     caching: false,
+    server_options: {},
+    server_type: "http"
   }
 
   // change defaults with supplied opts
@@ -272,9 +333,6 @@ var defaultOpts = function(opts) {
   if (!_.isString(defaults.protocol)) { defaults.protocol = "http"; }
   defaults.protocol = defaults.protocol.toLowerCase();
   if (defaults.protocol != 'http' && defaults.protocol != 'https') { defaults.protocol = 'http'; }
-  
-  // sane port values
-  if (!_.isNumber(defaults.port)) { defaults.port = 8000; }
 
   // return
   return defaults;
