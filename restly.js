@@ -238,7 +238,7 @@ restly.init = function(r, opts) {
     }else{
       var server = app.listen(opts.port);
     }
-    server.listen(opts.port)
+    //server.listen(opts.port)
 
     console.log("Listing on port: " + opts.port);
 
