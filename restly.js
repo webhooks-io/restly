@@ -122,7 +122,7 @@ restly.init = function(r, opts) {
       }
       res.header("Access-Control-Allow-Headers", "X-Requested-With");
       res.header("Access-Control-Allow-Credentials", "true");
-      res.header("Access-Control-Allow-Headers", "Authorization");
+      res.header("Access-Control-Allow-Headers", "Authorization, Content-Type");
       res.header("Access-Control-Expose-Headers", "Webhooksio-Request-Id,Webhooksio-Dev-Message,Webhooksio-Incoming-Message-Id,Webhooksio-Account-Id,Webhooksio-Message-Status,Webhooksio-Date-Received");
       res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
 
